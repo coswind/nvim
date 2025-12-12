@@ -1,4 +1,3 @@
--- basic
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -70,7 +69,6 @@ map("n", "<C-k>", "<C-w>k", { desc = "Move to above window" })
 map("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 map("n", "<leader>-", "<C-W>s", { desc = "Split Window Below", remap = true })
 map("n", "<leader>|", "<C-W>v", { desc = "Split Window Right", remap = true })
-map("n", "<leader>wd", "<C-W>c", { desc = "Delete Window", remap = true })
 
 -- lazy
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -132,6 +130,29 @@ require("lazy").setup({
     opts = { diagnostics = { virtual_text = false } },
   },
 
+  -- treesitter
+  {
+    "nvim-treesitter/nvim-treesitter",
+    lazy = false,
+    branch = "main",
+    build = ":TSUpdate",
+    opts = {},
+  },
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    lazy = false,
+    branch = "main",
+    opts = {},
+    config = function()
+      vim.keymap.set({ "x", "o" }, "af", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@function.outer", "textobjects")
+      end, { desc = "function outer" })
+      vim.keymap.set({ "x", "o" }, "if", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@function.inner", "textobjects")
+      end, { desc = "function inner" })
+    end,
+  },
+
   -- format
   {
     "stevearc/conform.nvim",
@@ -142,6 +163,7 @@ require("lazy").setup({
     opts = {
       formatters_by_ft = {
         lua = { "stylua" },
+        python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
       },
       default_format_opts = {
         lsp_format = "fallback",
@@ -164,8 +186,15 @@ require("lazy").setup({
           lazydev = { module = "lazydev.integrations.blink", score_offset = 100 },
         },
       },
+      cmdline = {
+        completion = { menu = { auto_show = true } },
+      },
     },
-    opts_extend = { "sources.default" },
+  },
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    opts = {},
   },
 
   -- ui
@@ -201,50 +230,59 @@ require("lazy").setup({
     },
   },
   {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    ---@module "flash"
+    ---@type Flash.Config
+    opts = {},
+    -- stylua: ignore
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+      { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+      { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+    },
+  },
+  {
     "folke/snacks.nvim",
     priority = 1000,
     lazy = false,
     ---@module "snacks"
     ---@type snacks.Config
-    opts = {},
+    opts = {
+      notifier = {
+        enabled = true,
+        timeout = 3000,
+      },
+    },
+    -- stylua: ignore
     keys = {
-      {
-        "<leader>f",
-        function()
-          Snacks.picker.smart()
-        end,
-        desc = "[S]earch Smart Files",
-      },
-      {
-        "<leader>sn",
-        function()
-          Snacks.picker.files({ cwd = vim.fn.stdpath("config") })
-        end,
-        desc = "Find Config File",
-      },
-      {
-        "<leader><leader>",
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = "[ ] Find existing buffers",
-      },
-      {
-        "<leader>/",
-        function()
-          Snacks.picker.grep()
-        end,
-        desc = "[S]earch by [G]rep",
-      },
-      {
-        "<C-`>",
-        function()
-          Snacks.terminal()
-        end,
-        desc = "Toggle Terminal",
-      },
+      { "<leader>f",        function() Snacks.picker.smart() end, desc = "Smart Find Files" },
+      { "<leader>sn",       function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Find Config File" },
+      { "<leader>sk",       function() Snacks.picker.keymaps() end, desc = "Keymaps" },
+      { "<leader><leader>", function() Snacks.picker.buffers() end, desc = "Open Buffers" },
+      { "<leader>/",        function() Snacks.picker.lines() end, desc = "Buffer Lines" },
+      { "<C-`>",            function() Snacks.terminal() end, desc = "Toggle Terminal" },
+      -- LSP
+      { "gd",  function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
+      { "gD",  function() Snacks.picker.lsp_declarations() end, desc = "Goto Declaration" },
+      { "gr",  function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
+      { "gI",  function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
+      { "gy",  function() Snacks.picker.lsp_type_definitions() end, desc = "Goto T[y]pe Definition" },
+      { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming" },
+      { "gao", function() Snacks.picker.lsp_outgoing_calls() end, desc = "C[a]lls Outgoing" },
+      { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
+      { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, desc = "LSP Workspace Symbols" },
     },
   },
 })
 
 vim.cmd([[colorscheme tokyonight]])
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "python", "lua" },
+  callback = function()
+    vim.treesitter.start()
+  end,
+})
