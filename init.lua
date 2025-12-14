@@ -276,6 +276,29 @@ require("lazy").setup({
       { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, desc = "LSP Workspace Symbols" },
     },
   },
+
+  -- editor
+  {
+    "epwalsh/obsidian.nvim",
+    version = "*",
+    lazy = true,
+    ft = "markdown",
+    event = {
+      "BufReadPre /home/x/Obsidian/*.md",
+      "BufNewFile /home/x/Obsidian/*.md",
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    opts = {
+      workspaces = {
+        {
+          name = "personal",
+          path = "/home/x/Obsidian",
+        },
+      },
+    },
+  },
 })
 
 vim.cmd([[colorscheme tokyonight]])
