@@ -3,6 +3,8 @@ vim.g.maplocalleader = " "
 
 vim.g.mapleader = " "
 vim.o.expandtab = true
+vim.o.shiftwidth = 4
+vim.o.tabstop = 4
 vim.o.number = true
 vim.o.relativenumber = true
 vim.o.scrolloff = 8
@@ -89,8 +91,6 @@ vim.opt.rtp:prepend(lazypath)
 
 -- plugins
 require("lazy").setup({
-  "NMAC427/guess-indent.nvim",
-
   {
     "folke/lazydev.nvim",
     ft = "lua",
