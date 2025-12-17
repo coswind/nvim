@@ -31,6 +31,9 @@ local map = vim.keymap.set
 
 map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
+-- editor
+map("n", "<leader>rn", ":IncRename ")
+
 -- move lines
 map("n", "<A-j>", "<cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
 map("n", "<A-k>", "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = "Move Up" })
@@ -279,25 +282,8 @@ require("lazy").setup({
 
   -- editor
   {
-    "epwalsh/obsidian.nvim",
-    version = "*",
-    lazy = true,
-    ft = "markdown",
-    event = {
-      "BufReadPre /home/x/Obsidian/*.md",
-      "BufNewFile /home/x/Obsidian/*.md",
-    },
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    opts = {
-      workspaces = {
-        {
-          name = "personal",
-          path = "/home/x/Obsidian",
-        },
-      },
-    },
+    "smjonas/inc-rename.nvim",
+    opts = {},
   },
 })
 
