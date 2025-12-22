@@ -165,6 +165,8 @@ require("lazy").setup({
     ---@type conform.setupOpts
     opts = {
       formatters_by_ft = {
+        json = { "prettier" },
+        jsonc = { "prettier" },
         lua = { "stylua" },
         python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
       },
